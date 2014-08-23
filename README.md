@@ -19,7 +19,7 @@ This app supply your home-recorder with automatic event check enable/disable swi
 
 ## Download apk from [here](https://github.com/nknytk/home-recorder-client/blob/master/dist/home-recorder-client.apk)
 ## Install downloaded apk
-## Put following values in to be same as home-recorder's
+## Put in following values to be same as home-recorder's
 * server side token
 * client side token
 * secure hash digest repetition
