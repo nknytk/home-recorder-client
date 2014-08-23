@@ -43,7 +43,7 @@ public class AtHomeCertificationService extends Service {
                     Boolean doCertification = pref.getBoolean(CommonVariables.DoCheck, false);
                     String clientToken = pref.getString(CommonVariables.CToken, null);
                     String serverToken = pref.getString(CommonVariables.SToken, null);
-                    Integer digestRepetition = pref.getInt(CommonVariables.DigestRepetition, 3000);
+                    Integer digestRepetition = pref.getInt(CommonVariables.DigestRepetition, 300);
 
                     Log.i("INFO", "UDP message from " + String.valueOf(receivedMessage[0]));
                     Log.i("INFO", "UDP message content " + String.valueOf(receivedMessage[1]));

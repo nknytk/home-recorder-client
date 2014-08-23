@@ -24,8 +24,8 @@ public class SettingActivity extends Activity {
         ctokenString.setText(pref.getString(CommonVariables.CToken, ""));
 
         final NumberPicker digestRepetition = (NumberPicker)findViewById(R.id.drepetition);
-        final int minRepetition = 1000;
-        int maxRepetition = 10000;
+        final int minRepetition = 100;
+        int maxRepetition = 1000;
         String[] repetitionChoice = new String[maxRepetition/minRepetition];
         for (int i = minRepetition; i <= maxRepetition; i += minRepetition) {
             repetitionChoice[i/minRepetition-1] = String.valueOf(i);
@@ -33,7 +33,7 @@ public class SettingActivity extends Activity {
         digestRepetition.setMinValue(1);
         digestRepetition.setMaxValue(maxRepetition/minRepetition);
         digestRepetition.setDisplayedValues(repetitionChoice);
-        digestRepetition.setValue(pref.getInt(CommonVariables.DigestRepetition, 3000)/minRepetition);
+        digestRepetition.setValue(pref.getInt(CommonVariables.DigestRepetition, 300)/minRepetition);
 
         Button okButton = (Button)findViewById(R.id.ok_button);
         Button cancelButton = (Button)findViewById(R.id.cancel_button);
