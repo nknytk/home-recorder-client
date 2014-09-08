@@ -38,7 +38,7 @@ public class UDPRetriever {
                 stopListening();
                 Log.i("INFO", "Wifi is off. Retry later.");
                 try {
-                    Thread.sleep(CommonVariables.UDPRetryIntervalMsec);
+                    Thread.sleep(Common.UDPRetryIntervalMsec);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -90,7 +90,7 @@ public class UDPRetriever {
         Log.i("INFO", "Acquired Wifi Lock");
         if(!multicastLock.isHeld()) multicastLock.acquire();
         receiveSocket = new DatagramSocket(port);
-        receiveSocket.setSoTimeout(CommonVariables.UDPRetryIntervalMsec);
+        receiveSocket.setSoTimeout(Common.UDPRetryIntervalMsec);
     }
 }
 

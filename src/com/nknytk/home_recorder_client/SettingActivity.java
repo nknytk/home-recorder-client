@@ -1,58 +1,212 @@
 package com.nknytk.home_recorder_client;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.NumberPicker;
+import android.widget.*;
+
+import java.lang.reflect.Array;
 
 /**
  * Created by nknytk on 14/08/14.
  */
 public class SettingActivity extends Activity {
+    String name;
+    String oldname;
+    EditText nameView;
+    EditText stokenView;
+    EditText ctokenView;
+    EditText digestRepetitionView;
+    CheckBox forceEnableCheck;
+    ImageView cameraView;
+    Context context = this;
+    SharedPreferences preferences;
+    CameraViewTask imageUpdater;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.setting_acitivity);
-        final SharedPreferences pref = getSharedPreferences(CommonVariables.PrefKey, MODE_PRIVATE);
+        preferences = getSharedPreferences(Common.PrefKey, MODE_PRIVATE);
 
-        final EditText stokenString = (EditText)findViewById(R.id.stoken);
-        final EditText ctokenString = (EditText)findViewById(R.id.ctoken);
-        stokenString.setText(pref.getString(CommonVariables.SToken, ""));
-        ctokenString.setText(pref.getString(CommonVariables.CToken, ""));
-
-        final NumberPicker digestRepetition = (NumberPicker)findViewById(R.id.drepetition);
-        final int minRepetition = 100;
-        int maxRepetition = 1000;
-        String[] repetitionChoice = new String[maxRepetition/minRepetition];
-        for (int i = minRepetition; i <= maxRepetition; i += minRepetition) {
-            repetitionChoice[i/minRepetition-1] = String.valueOf(i);
+        Intent intent = getIntent();
+        name = intent.getStringExtra("name");
+        if (name.equals(Common.AddNewSetting)) {
+            name = "";
+            setTitle("New Home Network Setting");
+        } else {
+            setTitle(name);
         }
-        digestRepetition.setMinValue(1);
-        digestRepetition.setMaxValue(maxRepetition/minRepetition);
-        digestRepetition.setDisplayedValues(repetitionChoice);
-        digestRepetition.setValue(pref.getInt(CommonVariables.DigestRepetition, 300)/minRepetition);
+        nameView = (EditText)findViewById(R.id.name);
+        nameView.setText(name);
+        oldname = name;
 
+        // Set current settings if exist
+        stokenView = (EditText)findViewById(R.id.stoken);
+        stokenView.setText(preferences.getString(Common.join(name, Common.SToken), ""));
+        ctokenView = (EditText)findViewById(R.id.ctoken);
+        ctokenView.setText(preferences.getString(Common.join(name, Common.CToken), ""));
+        digestRepetitionView = (EditText)findViewById(R.id.drepetition);
+        digestRepetitionView.setText(String.valueOf(
+                preferences.getInt(Common.join(name, Common.DigestRepetition), 300)));
+        forceEnableCheck = (CheckBox)findViewById(R.id.forceenable);
+        forceEnableCheck.setChecked(preferences.getBoolean(Common.join(name, Common.ForceCheck), false));
+
+        // set button actions
         Button okButton = (Button)findViewById(R.id.ok_button);
-        Button cancelButton = (Button)findViewById(R.id.cancel_button);
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor prefEditor = pref.edit();
-                prefEditor.putString(CommonVariables.SToken, stokenString.getText().toString());
-                prefEditor.putString(CommonVariables.CToken, ctokenString.getText().toString());
-                prefEditor.putInt(CommonVariables.DigestRepetition, digestRepetition.getValue() * minRepetition);
-                prefEditor.commit();
-                finish();
+                if (applyChange()) {
+                    imageUpdater.cancel(true);
+                    finish();
+                }
             }
         });
+        Button applyButton = (Button)findViewById(R.id.apply_button);
+        applyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                applyChange();
+            }
+        });
+        Button cancelButton = (Button)findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                imageUpdater.cancel(true);
                 finish();
             }
         });
+
+        // long tap to select camera device
+        cameraView = (ImageView)findViewById(R.id.camera_image);
+        cameraView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                switchCamera();
+                return false;
+            }
+        });
+    }
+
+    private boolean applyChange() {
+        String name = nameView.getText().toString().replace(Common.Separator, "");
+        String stoken = stokenView.getText().toString().replace(Common.Separator, "");
+        String ctoken = ctokenView.getText().toString().replace(Common.Separator, "");
+        String repetition_str = digestRepetitionView.getText().toString().replace(Common.Separator, "");
+        Boolean checked = forceEnableCheck.isChecked();
+
+        // empty value is not allowed
+        if ((name.equals("")) || (stoken.equals("")) || (ctoken.equals("")) || (repetition_str.equals(""))) {
+            alert("Empty value is not allowed");
+            return false;
+        }
+
+        // make home network name list Common.joined with the separator
+        String settingNames = preferences.getString(Common.SettingNames, null);
+        StringBuffer sb = new StringBuffer();
+        boolean shouldAppendSeparator = false;
+
+        if (settingNames != null) {
+            for (String sname: settingNames.split(Common.Separator)) {
+                // duplicated name is not allowed
+                if (sname.equals(name) && !name.equals(oldname)) {
+                    alert("Duplicate home network name is not allowed");
+                    return false;
+                }
+                // remove old name
+                if (sname.equals(oldname)) continue;
+                if (shouldAppendSeparator) sb.append(Common.Separator);
+                sb.append(sname);
+                shouldAppendSeparator = true;
+            }
+        }
+
+        if (shouldAppendSeparator) sb.append(Common.Separator);
+        sb.append(name);
+        String newSettingNames = sb.toString();
+
+        // commit setting change
+        SharedPreferences.Editor prefEditor = preferences.edit();
+        prefEditor.putString(Common.SettingNames, newSettingNames);
+        prefEditor.putString(Common.join(name, Common.SToken), stoken);
+        prefEditor.putString(Common.join(name, Common.CToken), ctoken);
+        prefEditor.putInt(Common.join(name, Common.DigestRepetition), Integer.valueOf(repetition_str));
+        prefEditor.putBoolean(Common.join(name, Common.ForceCheck), checked);
+        oldname = name;
+        prefEditor.commit();
+        setTitle(name);
+
+        imageUpdater.networkName = name;
+        return true;
+    }
+
+    private void startImageUpdating() {
+        imageUpdater = new CameraViewTask(context, cameraView);
+        Thread imgupdaterThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                imageUpdater.execute(name);
+            }
+        });
+        imgupdaterThread.start();
+        imageUpdater.networkName = name;
+    }
+
+    private void alert(String message) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Alert");
+        alertDialogBuilder.setMessage(message);
+        alertDialogBuilder.create().show();
+    }
+
+    private void switchCamera() {
+        final String[] devices = imageUpdater.availableCameras;
+        if (devices == null) return;
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_single_choice);
+        String selectedDevice = (String)cameraView.getTag();
+        int currentIndex = 0;
+        for (int i = 0; i < devices.length; i++) {
+            String device = devices[i];
+            adapter.add(device);
+            if ((selectedDevice != null) && selectedDevice.equals(device)) {
+                currentIndex = i;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose camera");
+        builder.setSingleChoiceItems(adapter, currentIndex, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int index) {
+                cameraView.setTag(devices[index]);
+                dialog.dismiss();
+            }
+        });
+        AlertDialog cameraSwitchDialog = builder.create();
+        cameraSwitchDialog.show();
+    }
+
+    // stop image updating when this app go background
+    @Override
+    protected void onPause() {
+        super.onPause();
+        imageUpdater.cancel(true);
+    }
+
+    // restart image updating when this app come forground
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startImageUpdating();
     }
 }
