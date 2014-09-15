@@ -37,6 +37,7 @@ public class HomeActivity extends Activity {
 
     private void showRemoveDialog(String settingName) {
         final String sname = settingName;
+        if(settingName.equals(Common.AddNewSetting)) return;
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle("Remove Setting");
         alertDialogBuilder.setMessage("Do you want to remove '" + sname + "'?");
@@ -75,10 +76,8 @@ public class HomeActivity extends Activity {
         linkList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity, SettingActivity.class);
                 String itemname = (String) parent.getItemAtPosition(position);
-                intent.putExtra("name", itemname);
-                startActivity(intent);
+                startSettingView(itemname);
             }
         });
 
@@ -117,6 +116,41 @@ public class HomeActivity extends Activity {
         prefEditor.commit();
 
         if (getApplicationContext() == this) finish();
+    }
+
+    private void startSettingView (String itemname) {
+        // when existing item is selected, directly move to setting view
+        if (!itemname.equals(Common.AddNewSetting)) {
+            Intent intent = new Intent(MainActivity, SettingActivity.class);
+            intent.putExtra("name", itemname);
+            startActivity(intent);
+            return;
+        }
+
+        // when "Add new item" is selected, show a dialog to input new setting name
+        final EditText settingNameInputView = new EditText(this);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("New home network setting");
+        alertDialogBuilder.setMessage("Input home network name");
+        alertDialogBuilder.setView(settingNameInputView);
+        alertDialogBuilder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newName = settingNameInputView.getText().toString();
+                if (newName.equals("") || newName.equals(Common.AddNewSetting)) {
+                    Toast.makeText(MainActivity, "This name is not acceptable", Toast.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(MainActivity, SettingActivity.class);
+                    intent.putExtra("name", newName);
+                    startActivity(intent);
+                }
+            }
+        });
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {}
+        });
+        alertDialogBuilder.create().show();
     }
 
     // start AtHomeCertificationService if it is not running

@@ -2,10 +2,15 @@ package com.nknytk.home_recorder_client;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.Display;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -19,7 +24,7 @@ import java.io.IOException;
 /**
  * Created by nknytk on 14/09/07.
  */
-public class CameraViewTask extends AsyncTask<String, Drawable, Drawable> {
+public class CameraViewTask extends AsyncTask<String, Bitmap, Bitmap> {
     Context context;
     ImageView view;
     SharedPreferences preferences;
@@ -35,8 +40,8 @@ public class CameraViewTask extends AsyncTask<String, Drawable, Drawable> {
     }
 
     @Override
-    protected Drawable doInBackground(String... values) {
-        Drawable image = null;
+    protected Bitmap doInBackground(String... values) {
+        Bitmap image = null;
         while (toContinue) {
             try {
                 Thread.sleep(interval);
@@ -77,23 +82,24 @@ public class CameraViewTask extends AsyncTask<String, Drawable, Drawable> {
     }
 
     @Override
-    protected void onProgressUpdate(Drawable... images) {
+    protected void onProgressUpdate(Bitmap... images) {
         if (images == null) {
             view.setImageResource(0);
         } else {
-            view.setImageDrawable(images[0]);
+
+            view.setImageBitmap(images[0]);
         }
     }
 
-    private Drawable getImage(String ipaddr, String devicename) {
+    private Bitmap getImage(String ipaddr, String devicename) {
         String url = Common.getURL(ipaddr, "/camera/image", "device=" + devicename);
         HttpEntity result = getUrlContent(url);
         try {
             ByteArrayOutputStream outs = new ByteArrayOutputStream();
             result.writeTo(outs);
             ByteArrayInputStream ins = new ByteArrayInputStream(outs.toByteArray());
-            Drawable img = Drawable.createFromStream(ins, devicename);
-            return img;
+            Bitmap bmp = BitmapFactory.decodeStream(ins);
+            return bmp;
         } catch (Exception e) {
             Log.e("ERROR", "ERROR", e);
             return null;

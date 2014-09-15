@@ -18,8 +18,6 @@ import java.lang.reflect.Array;
  */
 public class SettingActivity extends Activity {
     String name;
-    String oldname;
-    EditText nameView;
     EditText stokenView;
     EditText ctokenView;
     EditText digestRepetitionView;
@@ -34,18 +32,8 @@ public class SettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.setting_acitivity);
         preferences = getSharedPreferences(Common.PrefKey, MODE_PRIVATE);
-
-        Intent intent = getIntent();
-        name = intent.getStringExtra("name");
-        if (name.equals(Common.AddNewSetting)) {
-            name = "";
-            setTitle("New Home Network Setting");
-        } else {
-            setTitle(name);
-        }
-        nameView = (EditText)findViewById(R.id.name);
-        nameView.setText(name);
-        oldname = name;
+        name = getIntent().getStringExtra("name");
+        setTitle(name);
 
         // Set current settings if exist
         stokenView = (EditText)findViewById(R.id.stoken);
@@ -97,7 +85,6 @@ public class SettingActivity extends Activity {
     }
 
     private boolean applyChange() {
-        String name = nameView.getText().toString().replace(Common.Separator, "");
         String stoken = stokenView.getText().toString().replace(Common.Separator, "");
         String ctoken = ctokenView.getText().toString().replace(Common.Separator, "");
         String repetition_str = digestRepetitionView.getText().toString().replace(Common.Separator, "");
@@ -109,20 +96,14 @@ public class SettingActivity extends Activity {
             return false;
         }
 
-        // make home network name list Common.joined with the separator
+        // make home network name list.
         String settingNames = preferences.getString(Common.SettingNames, null);
         StringBuffer sb = new StringBuffer();
         boolean shouldAppendSeparator = false;
 
         if (settingNames != null) {
             for (String sname: settingNames.split(Common.Separator)) {
-                // duplicated name is not allowed
-                if (sname.equals(name) && !name.equals(oldname)) {
-                    alert("Duplicate home network name is not allowed");
-                    return false;
-                }
-                // remove old name
-                if (sname.equals(oldname)) continue;
+                if (sname.equals(name)) continue;
                 if (shouldAppendSeparator) sb.append(Common.Separator);
                 sb.append(sname);
                 shouldAppendSeparator = true;
@@ -132,6 +113,7 @@ public class SettingActivity extends Activity {
         if (shouldAppendSeparator) sb.append(Common.Separator);
         sb.append(name);
         String newSettingNames = sb.toString();
+        Log.i("INFO", newSettingNames);
 
         // commit setting change
         SharedPreferences.Editor prefEditor = preferences.edit();
@@ -140,7 +122,6 @@ public class SettingActivity extends Activity {
         prefEditor.putString(Common.join(name, Common.CToken), ctoken);
         prefEditor.putInt(Common.join(name, Common.DigestRepetition), Integer.valueOf(repetition_str));
         prefEditor.putBoolean(Common.join(name, Common.ForceCheck), checked);
-        oldname = name;
         prefEditor.commit();
         setTitle(name);
 
