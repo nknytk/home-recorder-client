@@ -5,28 +5,30 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 <ScrollView
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 <LinearLayout
         android:orientation="vertical"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
     <TextView
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Client Setting"
             android:textAppearance="?android:attr/textAppearanceLarge"/>
 
     <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_marginLeft="12sp"
+            android:layout_marginRight="12sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="  Always enable event check:"
+                android:text="Always enable event check:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
         <CheckBox
                 android:id="@+id/forceenable"
@@ -37,51 +39,57 @@
 
     <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_marginLeft="12sp"
+            android:layout_marginRight="12sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="  Server token:"
+                android:text="Server token:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
         <EditText
                 android:id="@+id/stoken"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_marginLeft="12sp"
+            android:layout_marginRight="12sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="  Client token:"
+                android:text="Client token:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
         <EditText
                 android:id="@+id/ctoken"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_marginLeft="12sp"
+            android:layout_marginRight="12sp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="  Secure-hash repetition:"
+                android:text="Secure-hash repetition:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
         <EditText
                 android:id="@+id/drepetition"
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
         <Button
@@ -105,15 +113,53 @@
     </LinearLayout>
 
     <LinearLayout
+            android:id="@+id/features"
             android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
-    <ImageView
-            android:id="@+id/camera_image"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scaleType="centerInside"
-            android:adjustViewBounds="true"/>
+            android:layout_height="wrap_content">
+        <TextView
+                android:tag="header"
+                android:layout_marginTop="6sp"
+                android:layout_marginBottom="6sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"/>
+        <TextView
+                android:tag="camera"
+                android:layout_marginTop="6sp"
+                android:layout_marginBottom="6sp"
+                android:layout_marginLeft="12sp"
+                android:layout_marginRight="12sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        <TextView
+                android:tag="mike"
+                android:layout_marginTop="6sp"
+                android:layout_marginBottom="6sp"
+                android:layout_marginLeft="12sp"
+                android:layout_marginRight="12sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        <TextView
+                android:tag="gpio"
+                android:layout_marginTop="6sp"
+                android:layout_marginBottom="6sp"
+                android:layout_marginLeft="12sp"
+                android:layout_marginRight="12sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        <TextView
+                android:tag="gcm"
+                android:layout_marginTop="6sp"
+                android:layout_marginBottom="6sp"
+                android:layout_marginLeft="12sp"
+                android:layout_marginRight="12sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
     </LinearLayout>
 
 </LinearLayout>

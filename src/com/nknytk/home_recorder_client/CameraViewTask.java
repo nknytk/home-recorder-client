@@ -1,42 +1,36 @@
 package com.nknytk.home_recorder_client;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.JsonReader;
 import android.util.Log;
-import android.view.Display;
-import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import android.widget.Spinner;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Created by nknytk on 14/09/07.
  */
 public class CameraViewTask extends AsyncTask<String, Bitmap, Bitmap> {
     Context context;
+    Spinner spinner;
     ImageView view;
-    SharedPreferences preferences;
-    Integer interval = 300;
+    String serverIP;
+    Integer interval = Common.RequestIntervalMsec;
+    ArrayList<String> deviceList = new ArrayList<String>();
     boolean toContinue = true;
-    String networkName = "";
-    String[] availableCameras = null;
+    boolean devicesAreSet = false;
 
-    protected CameraViewTask(Context context, ImageView pictureContainer) {
-        this.context = context;
-        view = pictureContainer;
-        preferences = context.getSharedPreferences(Common.PrefKey, context.MODE_PRIVATE);
+    protected CameraViewTask(Context activityContext,Spinner deviceSelector, ImageView imgView, String serverip) {
+        context = activityContext;
+        spinner = deviceSelector;
+        view = imgView;
+        serverIP = serverip;
     }
 
     @Override
@@ -46,34 +40,18 @@ public class CameraViewTask extends AsyncTask<String, Bitmap, Bitmap> {
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
-                Log.e("ERROR", e.toString());
-                toContinue = false;
+                break;
             }
 
-            String serverIP = preferences.getString(Common.join(networkName, Common.CurrentServerIP), null);
-            if (serverIP == null) {
-                publishProgress(null);
-                availableCameras = null;
-                continue;
-            }
-            Log.i("INFO", String.valueOf(serverIP));
+            if (deviceList == null || deviceList.size() == 0) getDeviceList();
+            if (deviceList == null || deviceList.size() == 0) continue;
+            publishProgress(image);
 
             try {
-                if (availableCameras == null) availableCameras = getCameraList(serverIP);
-                if (availableCameras != null) {
-                    String devicename = availableCameras[0];
-                    String selectedDevice = (String)view.getTag();
-                    for (String dname: availableCameras) {
-                        if (dname.equals(selectedDevice)) {
-                            devicename = selectedDevice;
-                            break;
-                        }
-                    }
-                    image = getImage(serverIP, devicename);
-                }
+                image = getImage();
             } catch (Error e) {
+                image = null;
                 Log.e("ERROR", e.toString());
-                publishProgress(null);
                 continue;
             }
             publishProgress(image);
@@ -83,22 +61,32 @@ public class CameraViewTask extends AsyncTask<String, Bitmap, Bitmap> {
 
     @Override
     protected void onProgressUpdate(Bitmap... images) {
+        // set device list to spinner if not set
+        if (!devicesAreSet) {
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            for (String device: deviceList) adapter.add(device);
+            spinner.setAdapter(adapter);
+            spinner.setSelection(0);
+
+            devicesAreSet = true;
+            return;
+        }
+
+        // if spinner is set, update image
         if (images == null) {
             view.setImageResource(0);
         } else {
-
             view.setImageBitmap(images[0]);
         }
     }
 
-    private Bitmap getImage(String ipaddr, String devicename) {
-        String url = Common.getURL(ipaddr, "/camera/image", "device=" + devicename);
-        HttpEntity result = getUrlContent(url);
+    private Bitmap getImage() {
+        String devicename = (String)spinner.getSelectedItem();
+        String url = Common.getURL(serverIP, "/camera/image", Common.join("device=", devicename, ""));
+        byte[] result = Common.getUrlContent(url);
         try {
-            ByteArrayOutputStream outs = new ByteArrayOutputStream();
-            result.writeTo(outs);
-            ByteArrayInputStream ins = new ByteArrayInputStream(outs.toByteArray());
-            Bitmap bmp = BitmapFactory.decodeStream(ins);
+            Bitmap bmp = BitmapFactory.decodeByteArray(result, 0, result.length);
             return bmp;
         } catch (Exception e) {
             Log.e("ERROR", "ERROR", e);
@@ -106,38 +94,23 @@ public class CameraViewTask extends AsyncTask<String, Bitmap, Bitmap> {
         }
     }
 
-    private String[] getCameraList(String ipaddr) {
-        String url = Common.getURL(ipaddr, "/camera/devicelist", null);
-        HttpEntity result = getUrlContent(url);
+    private void getDeviceList() {
+        String url = Common.getURL(serverIP, "/camera/devicelist", null);
+        byte[] result = Common.getUrlContent(url);
+        if (result == null) return;
+
+
+        JsonReader jsonReader = new JsonReader(new InputStreamReader((new ByteArrayInputStream(result))));
         try {
-            if (result == null) return null;
-            String cameras = EntityUtils.toString(result, "UTF-8");
-            if (cameras == null || cameras.equals("")) return null;
-            return cameras.split(Common.Separator);
+            jsonReader.beginArray();
+            while (jsonReader.hasNext()) deviceList.add(jsonReader.nextString());
+            jsonReader.endArray();
         } catch (IOException e) {
-            return null;
-        }
-
-    }
-
-    private HttpEntity getUrlContent(String url) {
-        try {
-            HttpGet req = new HttpGet(url);
-            DefaultHttpClient httpClient = new DefaultHttpClient();
-            HttpResponse res = httpClient.execute(req);
-            if (res.getStatusLine().toString().indexOf("200 OK") != -1) return res.getEntity();
-            Log.e("WARN", res.getStatusLine().toString());
-            return null;
-        } catch (Exception e) {
-            Log.e("ERROR", e.toString());
-            Log.e("ERROR", url);
-            return null;
         }
     }
 
     @Override
     protected void onCancelled(){
         toContinue = false;
-        Log.i("INFO", String.valueOf(toContinue));
     }
 }
