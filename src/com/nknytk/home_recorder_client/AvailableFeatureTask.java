@@ -154,6 +154,8 @@ public class AvailableFeatureTask extends AsyncTask <String, String, String> {
             intent = new Intent(context, CameraViewActivity.class);
         } else if (tagname.equals("mike")) {
             intent = new Intent(context, MikeViewActivity.class);
+        } else if (tagname.equals("gpio")) {
+            intent = new Intent(context, GPIOViewActivity.class);
         }
 
         if (intent == null) {

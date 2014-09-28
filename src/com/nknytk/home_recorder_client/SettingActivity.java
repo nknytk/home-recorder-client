@@ -22,11 +22,9 @@ public class SettingActivity extends Activity {
     EditText ctokenView;
     EditText digestRepetitionView;
     CheckBox forceEnableCheck;
-    //ImageView cameraView;
     LinearLayout featureContainerLayout;
     Context context = this;
     SharedPreferences preferences;
-    //CameraViewTask imageUpdater;
     AvailableFeatureTask featureUpdater;
 
 
@@ -55,7 +53,6 @@ public class SettingActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (applyChange()) {
-                    //imageUpdater.cancel(true);
                     featureUpdater.cancel(true);
                     finish();
                 }
@@ -72,24 +69,12 @@ public class SettingActivity extends Activity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //imageUpdater.cancel(true);
                 featureUpdater.cancel(true);
                 finish();
             }
         });
 
         featureContainerLayout = (LinearLayout)findViewById(R.id.features);
-/**
-        // long tap to select camera device
-        cameraView = (ImageView)findViewById(R.id.camera_image);
-        cameraView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                switchCamera();
-                return false;
-            }
-        });
- **/
     }
 
     private boolean applyChange() {
@@ -137,20 +122,6 @@ public class SettingActivity extends Activity {
         return true;
     }
 
-/**
-    private void startImageUpdating() {
-        imageUpdater = new CameraViewTask(context, cameraView);
-        Thread imgupdaterThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                imageUpdater.execute(name);
-            }
-        });
-        imgupdaterThread.start();
-        imageUpdater.networkName = name;
-    }
- **/
-
     private void startFeatureUpdating() {
         if (featureUpdater != null && featureUpdater.toContinue) {
             featureUpdater.networkName = name;
@@ -174,49 +145,16 @@ public class SettingActivity extends Activity {
         alertDialogBuilder.setMessage(message);
         alertDialogBuilder.create().show();
     }
-/**
-    private void switchCamera() {
-        final String[] devices = imageUpdater.availableCameras;
-        if (devices == null) return;
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_single_choice);
-        String selectedDevice = (String)cameraView.getTag();
-        int currentIndex = 0;
-        for (int i = 0; i < devices.length; i++) {
-            String device = devices[i];
-            adapter.add(device);
-            if ((selectedDevice != null) && selectedDevice.equals(device)) {
-                currentIndex = i;
-            }
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Choose camera");
-        builder.setSingleChoiceItems(adapter, currentIndex, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int index) {
-                cameraView.setTag(devices[index]);
-                dialog.dismiss();
-            }
-        });
-        AlertDialog cameraSwitchDialog = builder.create();
-        cameraSwitchDialog.show();
-    }
-**/
-    // stop image updating when this app go background
     @Override
     protected void onPause() {
         super.onPause();
         featureUpdater.cancel(true);
-        //imageUpdater.cancel(true);
     }
 
-    // restart image updating when this app come forground
     @Override
     protected void onResume() {
         super.onResume();
         startFeatureUpdating();
-        //startImageUpdating();
     }
 }
