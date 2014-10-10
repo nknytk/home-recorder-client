@@ -8,6 +8,11 @@ This app supply your home-recorder with automatic event check enable/disable swi
 * When you go out of home with registered Android terminal, event check of home-recorder is automatically enabled.
 * When you come back home with registered Android terminal, event check of home-recorder is automatically disabled.
 
+You can watch real time status of home-recorder (only when you are at home).
+* Images from cameras
+* Sounds from mikes
+* GPIO pin status
+
 ## Requirements
 
 * home-recorder in your home
@@ -17,16 +22,15 @@ This app supply your home-recorder with automatic event check enable/disable swi
 
 # Usage
 
-## Download apk from [here](https://github.com/nknytk/home-recorder-client/blob/master/dist/home-recorder-client.apk)
-## Install downloaded apk
-## Put in following values to be same as home-recorder's
-* server side token
-* client side token
-* secure hash digest repetition
+1. Setup [home-recorder](https://github.com/nknytk/home-recorder) server.
+2. Download apk from [here](https://github.com/nknytk/home-recorder-client/blob/master/dist/home-recorder-client.apk)
+3. Install downloaded apk
+4. Fill in following three fields so that the values are the same as server's: Server token, Client token, Secure-hash repetition
 
 # ToDo
 
-* watch camera from this app
+* Register and receive GCM notification
+* Check 
 * stop background service when you disable automatic switch
 * all home-recorder config from app (long long way...)
 
@@ -36,6 +40,6 @@ You need working [home-recorder](https://github.com/nknytk/home-recorder) first.
 
 ## License
 
-Copyright (c) [2014] [Yutaka Nakano]
+Copyright 2014 Yutaka Nakano
 
 This software is released under the Apache License v2.
