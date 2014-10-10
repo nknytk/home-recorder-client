@@ -30,7 +30,7 @@ You can watch real time status of home-recorder (only when you are at home).
 # ToDo
 
 * Register and receive GCM notification
-* Check 
+* Notify when server is down.
 * stop background service when you disable automatic switch
 * all home-recorder config from app (long long way...)
 
